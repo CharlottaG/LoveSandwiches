@@ -9,12 +9,13 @@ SCOPE = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive.file",
     "https://www.googleapis.com/auth/drive"
-    ]
+]
 
 CREDS = Credentials.from_service_account_file('creds.json')
 SCOPED_CREDS = CREDS.with_scopes(SCOPE)
 GSPREAD_CLIENT = gspread.authorize(SCOPED_CREDS)
 SHEET = GSPREAD_CLIENT.open('love_sandwiches')
+
 
 def get_sales_data():
     """
@@ -28,12 +29,13 @@ def get_sales_data():
         data_str = input('Enter you data here:\n')
 
         sales_data = data_str.split(',')
-        
+
         if validate_data(sales_data):
             print('Data is valid')
             break
 
     return sales_data
+
 
 def validate_data(values):
     """
@@ -41,17 +43,18 @@ def validate_data(values):
     Raises ValuesError if strings cannot be converted to int,
     or if there aren't exactly 5 values.
     """
-    
+
     try:
         [int(value) for value in values]
         if len(values) != 6:
             raise ValueError(
-        f"Exactly 6 values are required, you provided {len(values)}"
-        )
+                f"Exactly 6 values are required, you provided {len(values)}"
+            )
     except ValueError as e:
         print(f"Invalid data: {e}, please try again.")
         return False
     return True
+
 
 def update_worksheet(data, worksheet):
     """
@@ -63,6 +66,7 @@ def update_worksheet(data, worksheet):
     worksheet_to_update.append_row(data)
     print(f'{worksheet} worksheet updated successfully.\n')
 
+
 def calculate_surplus_data(sales_row):
     """
     Compare sales with stock and calculate the surplus for each item.
@@ -73,7 +77,7 @@ def calculate_surplus_data(sales_row):
     print('Calculating surplus data...\n')
     stock = SHEET.worksheet('stock').get_all_values()
     stock_row = stock[-1]
-    
+
     surplus_data = []
     for stock, sales in zip(stock_row, sales_row):
         surplus = int(stock) - sales
@@ -81,19 +85,22 @@ def calculate_surplus_data(sales_row):
 
     return surplus_data
 
+
 def get_last_5_entries_sales():
     """
     Collects columns of data from sales worksheet.
-    Collecting last 5 entries for each item and returns data as a list of lists.
+    Collecting last 5 entries for each item.
+    Returns data as a list of lists.
     """
     sales = SHEET.worksheet('sales')
 
     columns = []
-    for ind in range(1,7):
+    for ind in range(1, 7):
         column = sales.col_values(ind)
         columns.append(column[-5:])
-    
+
     return columns
+
 
 def calculate_stock_data(data):
     """
@@ -123,7 +130,7 @@ def main():
     sales_columns = get_last_5_entries_sales()
     stock_data = calculate_stock_data(sales_columns)
     update_worksheet(stock_data, 'stock')
-    
+
 
 print('Welcome to love sandwishes data automation')
 main()
